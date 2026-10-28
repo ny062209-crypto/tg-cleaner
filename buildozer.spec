@@ -4,7 +4,7 @@ package.name = tgcleaner
 package.domain = org.tgcleaner
 source.dir = .
 source.include_exts = py,png,jpg,kv,atlas,ttf
-version = 1.1.0
+version = 1.1.1
 requirements = python3,kivy==2.3.0,sqlite3,telethon,pyaes,rsa,pyasn1
 orientation = portrait
 fullscreen = 0

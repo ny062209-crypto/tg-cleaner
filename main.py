@@ -30,7 +30,7 @@ from telethon.errors import FloodWaitError, SessionPasswordNeededError
 from telethon.tl.functions.channels import DeleteChannelRequest
 from telethon.tl.types import Channel, ChatPhotoEmpty, UserProfilePhotoEmpty
 
-VERSION = "1.1.0"
+VERSION = "1.1.1"
 HERE = os.path.dirname(os.path.abspath(__file__))
 KHMER_FONT = os.path.join(HERE, "fonts", "khmer.ttf")
 if not os.path.exists(KHMER_FONT):
@@ -44,6 +44,8 @@ PALETTE = [
 KV = """
 <ChatRow>:
     orientation: 'horizontal'
+    size_hint_y: None
+    height: dp(64)
     spacing: dp(6)
     padding: dp(4)
     canvas.after:
@@ -644,6 +646,29 @@ class CleanerApp(App):
                     self.items = [x for x in self.items if x["cid"] not in removed]
                     self.apply_filter()
                 await asyncio.sleep(1.0)
+
+            if removed:
+                self.set_status("Verifying with Telegram...")
+                await asyncio.sleep(2.0)
+                names = {it["cid"]: it["name"] for it in chosen}
+                still = set()
+                try:
+                    async for d in self.client.iter_dialogs():
+                        if d.id in removed:
+                            still.add(d.id)
+                except Exception as e:
+                    self.add_log(f"[WARN] Could not verify: {e}")
+                if still:
+                    for cid in still:
+                        self.add_log(
+                            f"[STILL THERE] {names.get(cid, cid)} - Telegram "
+                            "did not remove it (may need a few minutes to "
+                            "sync, or it is a bot shortcut Telegram keeps)")
+                    ok -= len(still)
+                    failed += len(still)
+                else:
+                    self.add_log("[VERIFIED] All deleted chats confirmed gone from Telegram")
+
             self.add_log(f"--- Finished: {ok} ok, {failed} failed ---")
             self.set_status(f"Finished. {ok} ok, {failed} failed.")
         except Exception as e:
